@@ -111,6 +111,17 @@
       z-index: 10;
       box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
     }
+
+    .segments {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      overflow: hidden;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -122,6 +133,43 @@
 
   <script>
     const clockEl = document.getElementById('clock');
+
+    function polarToXY(cx, cy, r, clockDeg) {
+      const rad = (clockDeg - 90) * Math.PI / 180;
+      return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+    }
+
+    function segmentPath(cx, cy, r, startDeg, endDeg) {
+      const s = polarToXY(cx, cy, r, startDeg);
+      const e = polarToXY(cx, cy, r, endDeg);
+      const large = endDeg - startDeg > 180 ? 1 : 0;
+      return `M ${cx} ${cy} L ${s.x.toFixed(3)} ${s.y.toFixed(3)} A ${r} ${r} 0 ${large} 1 ${e.x.toFixed(3)} ${e.y.toFixed(3)} Z`;
+    }
+
+    const segments = [
+      { start:   0, end:  48, color: '#50c878' }, // verde   — 0–10 min
+      { start:  48, end:  72, color: '#ffd700' }, // amarelo — 10–15 min
+      { start:  72, end: 288, color: '#4a90d9' }, // azul    — 15–60 min
+      { start: 288, end: 312, color: '#ff8c00' }, // laranja — 60–65 min
+      { start: 312, end: 360, color: '#dc143c' }, // vermelho — 65–75 min
+    ];
+
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 260 260');
+    svg.classList.add('segments');
+
+    segments.forEach(({ start, end, color }) => {
+      const path = document.createElementNS(svgNS, 'path');
+      path.setAttribute('d', segmentPath(130, 130, 126, start, end));
+      path.setAttribute('fill', color);
+      path.setAttribute('fill-opacity', '0.75');
+      path.setAttribute('stroke', 'rgba(0,0,0,0.3)');
+      path.setAttribute('stroke-width', '1');
+      svg.appendChild(path);
+    });
+
+    clockEl.insertBefore(svg, clockEl.firstChild);
 
     for (let i = 0; i < 15; i++) {
       const tick = document.createElement('div');
