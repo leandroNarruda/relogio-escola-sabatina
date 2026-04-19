@@ -123,10 +123,10 @@
   <script>
     const clockEl = document.getElementById('clock');
 
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 15; i++) {
       const tick = document.createElement('div');
       tick.classList.add('tick');
-      tick.style.transform = `rotate(${i * 30}deg)`;
+      tick.style.transform = `rotate(${i * 24}deg)`;
       clockEl.appendChild(tick);
     }
 
@@ -149,7 +149,7 @@
       const elapsed = (Date.now() - startTime) / 1000;
 
       secondHand.style.transform = `rotate(${(elapsed % 60) * 6}deg)`;
-      minuteHand.style.transform = `rotate(${(elapsed / 60) * 6}deg)`;
+      minuteHand.style.transform = `rotate(${(elapsed / 75) * 6}deg)`;
     }
 
     update();
