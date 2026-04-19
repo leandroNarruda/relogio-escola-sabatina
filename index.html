@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Relógio</title>
   <style>
     * {
@@ -12,23 +12,21 @@
     }
 
     body {
-      min-height: 100vh;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
       background: #0f0f1a;
-      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+      padding:
+        max(env(safe-area-inset-top), 5vmin)
+        max(env(safe-area-inset-right), 5vmin)
+        max(env(safe-area-inset-bottom), 5vmin)
+        max(env(safe-area-inset-left), 5vmin);
     }
 
-    .clock-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 32px;
-    }
-
-    /* Relógio analógico */
     .clock-face {
       width: 260px;
       height: 260px;
@@ -40,6 +38,8 @@
         0 0 40px rgba(100, 100, 255, 0.15),
         inset 0 0 30px rgba(0, 0, 0, 0.5);
       position: relative;
+      flex-shrink: 0;
+      transform: scale(var(--scale, 1));
     }
 
     .clock-face::before {
@@ -50,56 +50,23 @@
       border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
-    /* Marcadores de hora */
     .tick {
       position: absolute;
-      width: 2px;
-      height: 10px;
-      background: rgba(255, 255, 255, 0.3);
-      left: 50%;
-      top: 12px;
-      transform-origin: 50% 118px;
-      margin-left: -1px;
-    }
-
-    .tick.major {
       width: 3px;
       height: 16px;
       background: rgba(255, 255, 255, 0.7);
+      left: 50%;
       top: 10px;
       transform-origin: 50% 120px;
+      margin-left: -1.5px;
     }
 
-    /* Números */
-    .number {
-      position: absolute;
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 13px;
-      font-weight: 600;
-      width: 22px;
-      height: 22px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transform: translate(-50%, -50%);
-    }
-
-    /* Ponteiros */
     .hand {
       position: absolute;
       bottom: 50%;
       left: 50%;
       transform-origin: bottom center;
       border-radius: 4px;
-    }
-
-    .hour-hand {
-      width: 6px;
-      height: 70px;
-      background: linear-gradient(to top, #a0a0ff, #6060cc);
-      margin-left: -3px;
-      border-radius: 4px 4px 2px 2px;
-      box-shadow: 0 0 8px rgba(100, 100, 255, 0.5);
     }
 
     .minute-hand {
@@ -132,7 +99,6 @@
       border-radius: 2px;
     }
 
-    /* Centro */
     .center-dot {
       position: absolute;
       top: 50%;
@@ -145,100 +111,45 @@
       z-index: 10;
       box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
     }
-
-    /* Display digital */
-    .digital {
-      font-size: 36px;
-      font-weight: 300;
-      color: #fff;
-      letter-spacing: 6px;
-      text-shadow: 0 0 20px rgba(100, 100, 255, 0.5);
-    }
-
-    .digital span.seconds {
-      font-size: 22px;
-      color: #ff6060;
-      vertical-align: middle;
-    }
-
-    .date-display {
-      font-size: 13px;
-      color: rgba(255, 255, 255, 0.4);
-      letter-spacing: 3px;
-      text-transform: uppercase;
-    }
   </style>
 </head>
 <body>
-  <div class="clock-container">
-    <div class="clock-face" id="clock">
-      <!-- Marcadores gerados via JS -->
-      <div class="hand hour-hand" id="hour"></div>
-      <div class="hand minute-hand" id="minute"></div>
-      <div class="hand second-hand" id="second"></div>
-      <div class="center-dot"></div>
-    </div>
-
-    <div class="digital" id="digital"></div>
-    <div class="date-display" id="date-display"></div>
+  <div class="clock-face" id="clock">
+    <div class="hand minute-hand" id="minute"></div>
+    <div class="hand second-hand" id="second"></div>
+    <div class="center-dot"></div>
   </div>
 
   <script>
     const clockEl = document.getElementById('clock');
 
-    // Gera marcadores e números
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < 12; i++) {
       const tick = document.createElement('div');
       tick.classList.add('tick');
-      if (i % 5 === 0) tick.classList.add('major');
-      tick.style.transform = `rotate(${i * 6}deg)`;
+      tick.style.transform = `rotate(${i * 30}deg)`;
       clockEl.appendChild(tick);
     }
 
-    const nums = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-    const r = 102;
-    nums.forEach((n, i) => {
-      const angle = (i / 12) * 2 * Math.PI - Math.PI / 2;
-      const x = 130 + r * Math.cos(angle);
-      const y = 130 + r * Math.sin(angle);
-      const el = document.createElement('div');
-      el.classList.add('number');
-      el.textContent = n;
-      el.style.left = x + 'px';
-      el.style.top = y + 'px';
-      clockEl.appendChild(el);
-    });
+    function setScale() {
+      const safe = parseFloat(getComputedStyle(document.body).paddingTop) * 2;
+      const available = Math.min(window.innerWidth, window.innerHeight) - safe;
+      const scale = available / 260;
+      document.documentElement.style.setProperty('--scale', scale);
+    }
 
-    const hourHand   = document.getElementById('hour');
+    setScale();
+    window.addEventListener('resize', setScale);
+
     const minuteHand = document.getElementById('minute');
     const secondHand = document.getElementById('second');
-    const digitalEl  = document.getElementById('digital');
-    const dateEl     = document.getElementById('date-display');
 
-    const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-    const months   = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const startTime = Date.now();
 
     function update() {
-      const now = new Date();
-      const h = now.getHours();
-      const m = now.getMinutes();
-      const s = now.getSeconds();
-      const ms = now.getMilliseconds();
+      const elapsed = (Date.now() - startTime) / 1000;
 
-      const secDeg  = (s + ms / 1000) * 6;
-      const minDeg  = m * 6 + s * 0.1;
-      const hourDeg = (h % 12) * 30 + m * 0.5;
-
-      hourHand.style.transform   = `rotate(${hourDeg}deg)`;
-      minuteHand.style.transform = `rotate(${minDeg}deg)`;
-      secondHand.style.transform = `rotate(${secDeg}deg)`;
-
-      const hh = String(h).padStart(2, '0');
-      const mm = String(m).padStart(2, '0');
-      const ss = String(s).padStart(2, '0');
-      digitalEl.innerHTML = `${hh}:${mm}<span class="seconds">:${ss}</span>`;
-
-      dateEl.textContent = `${weekdays[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+      secondHand.style.transform = `rotate(${(elapsed % 60) * 6}deg)`;
+      minuteHand.style.transform = `rotate(${(elapsed / 60) * 6}deg)`;
     }
 
     update();
