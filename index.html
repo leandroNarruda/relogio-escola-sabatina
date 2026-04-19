@@ -32,32 +32,22 @@
       height: 260px;
       border-radius: 50%;
       background: radial-gradient(circle at 30% 30%, #2a2a3e, #0d0d1a);
-      border: 4px solid #3a3a5c;
       box-shadow:
-        0 0 0 2px #1a1a2e,
         0 0 40px rgba(100, 100, 255, 0.15),
-        inset 0 0 30px rgba(0, 0, 0, 0.5);
+        inset 0 0 30px rgba(255, 255, 255, 0.5);
       position: relative;
       flex-shrink: 0;
       transform: scale(var(--scale, 1));
     }
 
-    .clock-face::before {
-      content: '';
-      position: absolute;
-      inset: 8px;
-      border-radius: 50%;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .tick {
+.tick {
       position: absolute;
       width: 3px;
       height: 16px;
       background: rgba(255, 255, 255, 0.7);
       left: 50%;
-      top: 10px;
-      transform-origin: 50% 120px;
+      top: 0;
+      transform-origin: 50% 130px;
       margin-left: -1.5px;
     }
 
@@ -168,27 +158,40 @@
       svg.appendChild(path);
     });
 
-    // linhas divisórias brancas nas bordas entre fatias
-    [0, 48, 72, 288, 312].forEach(deg => {
-      const p = polarToXY(130, 130, 126, deg);
-      const line = document.createElementNS(svgNS, 'line');
-      line.setAttribute('x1', '130');
-      line.setAttribute('y1', '130');
-      line.setAttribute('x2', p.x.toFixed(3));
-      line.setAttribute('y2', p.y.toFixed(3));
-      line.setAttribute('stroke', 'rgba(255,255,255,0.55)');
-      line.setAttribute('stroke-width', '1.5');
-      svg.appendChild(line);
+    const labels = [
+      { midDeg:  24, text: 'Abertura' },
+      { midDeg:  60, text: 'Confraternização' },
+      { midDeg: 180, text: 'Lição' },
+      { midDeg: 300, text: 'Pastoreio' },
+      { midDeg: 336, text: 'Fechamento' },
+    ];
+
+    labels.forEach(({ midDeg, text: label }) => {
+      const r = 80;
+      const { x, y } = polarToXY(130, 130, r, midDeg);
+      const textEl = document.createElementNS(svgNS, 'text');
+      textEl.setAttribute('x', x.toFixed(3));
+      textEl.setAttribute('y', y.toFixed(3));
+      textEl.setAttribute('text-anchor', 'middle');
+      textEl.setAttribute('dominant-baseline', 'middle');
+      textEl.setAttribute('fill', '#fff');
+      textEl.setAttribute('font-size', '10');
+      textEl.setAttribute('font-family', 'sans-serif');
+      textEl.setAttribute('font-weight', '600');
+      const rot = (midDeg > 90 && midDeg < 270) ? midDeg + 90 : midDeg - 90;
+      textEl.setAttribute('transform', `rotate(${rot} ${x.toFixed(3)} ${y.toFixed(3)})`);
+      textEl.textContent = label;
+      svg.appendChild(textEl);
     });
 
     clockEl.insertBefore(svg, clockEl.firstChild);
 
-    for (let i = 0; i < 15; i++) {
+    [0, 48, 72, 288, 312].forEach(deg => {
       const tick = document.createElement('div');
       tick.classList.add('tick');
-      tick.style.transform = `rotate(${i * 24}deg)`;
+      tick.style.transform = `rotate(${deg}deg)`;
       clockEl.appendChild(tick);
-    }
+    });
 
     function setScale() {
       const safe = parseFloat(getComputedStyle(document.body).paddingTop) * 2;
