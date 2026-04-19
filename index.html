@@ -70,12 +70,12 @@
     }
 
     .minute-hand {
-      width: 4px;
+      width: 5px;
       height: 96px;
-      background: linear-gradient(to top, #ffffff, #ccccff);
-      margin-left: -2px;
+      background: linear-gradient(to top, #ffffff, #e8e8ff);
+      margin-left: -2.5px;
       border-radius: 4px 4px 2px 2px;
-      box-shadow: 0 0 6px rgba(200, 200, 255, 0.4);
+      box-shadow: 0 0 0 1.5px rgba(0,0,0,0.6), 0 0 8px rgba(255,255,255,0.5);
     }
 
     .second-hand {
@@ -163,10 +163,22 @@
       const path = document.createElementNS(svgNS, 'path');
       path.setAttribute('d', segmentPath(130, 130, 126, start, end));
       path.setAttribute('fill', color);
-      path.setAttribute('fill-opacity', '0.75');
-      path.setAttribute('stroke', 'rgba(0,0,0,0.3)');
-      path.setAttribute('stroke-width', '1');
+      path.setAttribute('fill-opacity', '0.55');
+      path.setAttribute('stroke', 'none');
       svg.appendChild(path);
+    });
+
+    // linhas divisórias brancas nas bordas entre fatias
+    [0, 48, 72, 288, 312].forEach(deg => {
+      const p = polarToXY(130, 130, 126, deg);
+      const line = document.createElementNS(svgNS, 'line');
+      line.setAttribute('x1', '130');
+      line.setAttribute('y1', '130');
+      line.setAttribute('x2', p.x.toFixed(3));
+      line.setAttribute('y2', p.y.toFixed(3));
+      line.setAttribute('stroke', 'rgba(255,255,255,0.55)');
+      line.setAttribute('stroke-width', '1.5');
+      svg.appendChild(line);
     });
 
     clockEl.insertBefore(svg, clockEl.firstChild);
