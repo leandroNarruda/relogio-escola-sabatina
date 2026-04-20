@@ -285,11 +285,11 @@
     }
 
     const segments = [
-      { start:   0, end:  48, color: '#50c878' }, // verde   — 0–10 min
-      { start:  48, end:  72, color: '#ffd700' }, // amarelo — 10–15 min
-      { start:  72, end: 288, color: '#4a90d9' }, // azul    — 15–60 min
-      { start: 288, end: 312, color: '#ff8c00' }, // laranja — 60–65 min
-      { start: 312, end: 360, color: '#dc143c' }, // vermelho — 65–75 min
+      { start:   0, end:  48, color: '#00e676' }, // verde   — 0–10 min
+      { start:  48, end:  72, color: '#ffea00' }, // amarelo — 10–15 min
+      { start:  72, end: 288, color: '#00b0ff' }, // azul    — 15–60 min
+      { start: 288, end: 312, color: '#ff6d00' }, // laranja — 60–65 min
+      { start: 312, end: 360, color: '#ff1744' }, // vermelho — 65–75 min
     ];
 
     const svgNS = 'http://www.w3.org/2000/svg';
@@ -301,7 +301,7 @@
       const path = document.createElementNS(svgNS, 'path');
       path.setAttribute('d', segmentPath(130, 130, 126, start, end));
       path.setAttribute('fill', color);
-      path.setAttribute('fill-opacity', '0.55');
+      path.setAttribute('fill-opacity', '0.85');
       path.setAttribute('stroke', 'none');
       svg.appendChild(path);
     });
