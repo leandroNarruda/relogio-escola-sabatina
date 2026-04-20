@@ -159,6 +159,72 @@
       border-left-color: #dc143c;
     }
 
+    .fx-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 1000;
+    }
+
+    .confetti {
+      position: absolute;
+      top: -5vh;
+      width: 10px;
+      height: 14px;
+      border-radius: 2px;
+      will-change: transform, opacity;
+      animation: confetti-fall linear forwards;
+    }
+
+    @keyframes confetti-fall {
+      0%   { transform: translate3d(0, -10vh, 0) rotate(0deg);           opacity: 1; }
+      100% { transform: translate3d(var(--dx), 115vh, 0) rotate(var(--rot)); opacity: 0.85; }
+    }
+
+    .stage-banner {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 1001;
+      font-family: sans-serif;
+      font-weight: 900;
+      font-size: clamp(2rem, 7vmin, 4.5rem);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #fff;
+      text-shadow:
+        0 0 20px currentColor,
+        0 0 40px currentColor,
+        0 4px 14px rgba(0,0,0,0.8);
+      animation: stage-banner 2.4s ease-out forwards;
+    }
+
+    @keyframes stage-banner {
+      0%   { opacity: 0; transform: scale(0.3)  translateY(10vh); filter: blur(20px); }
+      18%  { opacity: 1; transform: scale(1.18) translateY(0);    filter: blur(0);    }
+      55%  { opacity: 1; transform: scale(1)    translateY(0);    filter: blur(0);    }
+      100% { opacity: 0; transform: scale(1.3)  translateY(-8vh); filter: blur(6px);  }
+    }
+
+    .flash {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999;
+      background: radial-gradient(circle at center, var(--flash-color, #fff) 0%, transparent 65%);
+      animation: flash 0.9s ease-out forwards;
+    }
+
+    @keyframes flash {
+      0%   { opacity: 0;    }
+      20%  { opacity: 0.55; }
+      100% { opacity: 0;    }
+    }
+
     .drag-time-tooltip {
       display: none;
       position: absolute;
@@ -356,6 +422,76 @@
     const licaoMinEnd   = 60;
     const licaoDuracao  = licaoMinEnd - licaoMinStart; // 45 min
 
+    const licaoDiasKeys = ['sabado', 'domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta'];
+
+    const stageInfo = {
+      abertura:         { label: 'Abertura',         color: '#50c878', palette: ['#50c878','#8ee8a8','#2e9d5a','#ffffff'] },
+      confraternizacao: { label: 'Confraternização', color: '#ffd700', palette: ['#ffd700','#ffe866','#c9a800','#ffffff'] },
+      'licao-sabado':   { label: 'Lição · Sábado',   color: '#4a90d9', palette: ['#4a90d9','#7ab0e8','#2a6eb0','#ffffff'] },
+      'licao-domingo':  { label: 'Lição · Domingo',  color: '#4a90d9', palette: ['#4a90d9','#7ab0e8','#2a6eb0','#ffffff'] },
+      'licao-segunda':  { label: 'Lição · Segunda',  color: '#4a90d9', palette: ['#4a90d9','#7ab0e8','#2a6eb0','#ffffff'] },
+      'licao-terca':    { label: 'Lição · Terça',    color: '#4a90d9', palette: ['#4a90d9','#7ab0e8','#2a6eb0','#ffffff'] },
+      'licao-quarta':   { label: 'Lição · Quarta',   color: '#4a90d9', palette: ['#4a90d9','#7ab0e8','#2a6eb0','#ffffff'] },
+      'licao-quinta':   { label: 'Lição · Quinta',   color: '#4a90d9', palette: ['#4a90d9','#7ab0e8','#2a6eb0','#ffffff'] },
+      'licao-sexta':    { label: 'Lição · Sexta',    color: '#4a90d9', palette: ['#4a90d9','#7ab0e8','#2a6eb0','#ffffff'] },
+      pastoreio:        { label: 'Pastoreio',        color: '#ff8c00', palette: ['#ff8c00','#ffb347','#cc6f00','#ffffff'] },
+      fechamento:       { label: 'Fechamento',       color: '#dc143c', palette: ['#dc143c','#ff5673','#9b0e2a','#ffffff'] },
+      fim:              { label: 'Fim',              color: '#dc143c', palette: ['#dc143c','#ff5673','#9b0e2a','#ffffff'] },
+    };
+
+    function currentStageKey(m) {
+      if (m < 10) return 'abertura';
+      if (m < 15) return 'confraternizacao';
+      if (m < 60) {
+        const idx = Math.min(6, Math.floor((m - 15) / (licaoDuracao / 7)));
+        return 'licao-' + licaoDiasKeys[idx];
+      }
+      if (m < 65) return 'pastoreio';
+      if (m < 75) return 'fechamento';
+      return 'fim';
+    }
+
+    function fireStageAnimation(key) {
+      const info = stageInfo[key];
+      if (!info) return;
+
+      const flash = document.createElement('div');
+      flash.className = 'flash';
+      flash.style.setProperty('--flash-color', info.color);
+      document.body.appendChild(flash);
+      setTimeout(() => flash.remove(), 900);
+
+      const banner = document.createElement('div');
+      banner.className = 'stage-banner';
+      banner.style.color = info.color;
+      banner.textContent = info.label;
+      document.body.appendChild(banner);
+      setTimeout(() => banner.remove(), 2400);
+
+      const layer = document.createElement('div');
+      layer.className = 'fx-layer';
+      document.body.appendChild(layer);
+
+      const N = 90;
+      for (let i = 0; i < N; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti';
+        piece.style.left = (Math.random() * 100) + 'vw';
+        piece.style.background = info.palette[i % info.palette.length];
+        piece.style.setProperty('--dx', ((Math.random() - 0.5) * 60) + 'vw');
+        piece.style.setProperty('--rot', (Math.random() * 1440 - 720) + 'deg');
+        piece.style.animationDuration = (2.2 + Math.random() * 1.8) + 's';
+        piece.style.animationDelay = (Math.random() * 0.4) + 's';
+        piece.style.width = (6 + Math.random() * 8) + 'px';
+        piece.style.height = (10 + Math.random() * 10) + 'px';
+        piece.style.opacity = 0.85 + Math.random() * 0.15;
+        layer.appendChild(piece);
+      }
+      setTimeout(() => layer.remove(), 4500);
+    }
+
+    let lastStageKey = null;
+
     let startTime = Date.now();
     let dragging = false;
     let dragDeg = 0;
@@ -386,6 +522,14 @@
       }
 
       const minutesElapsed = dragging ? (dragDeg / 6 * 75 / 60) : (elapsed / 60);
+
+      const stageKey = currentStageKey(minutesElapsed);
+      if (lastStageKey === null) {
+        lastStageKey = stageKey;
+      } else if (stageKey !== lastStageKey) {
+        if (!dragging) fireStageAnimation(stageKey);
+        lastStageKey = stageKey;
+      }
 
       let remaining, color;
 
