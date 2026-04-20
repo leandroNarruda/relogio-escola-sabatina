@@ -147,6 +147,27 @@
     .alert-msg.blue   { color: #4a90d9; background: rgba(74,144,217,0.12); }
     .alert-msg.orange { color: #ff8c00; background: rgba(255,140,0,0.12); }
     .alert-msg.red    { color: #dc143c; background: rgba(220,20,60,0.12); }
+
+    .drag-time-tooltip {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.8rem;
+      font-weight: bold;
+      font-family: sans-serif;
+      color: #ffffff;
+      text-shadow: 0 0 12px rgba(100, 100, 255, 0.8);
+      pointer-events: none;
+      z-index: 20;
+      background: rgba(0, 0, 0, 0.55);
+      padding: 4px 12px;
+      border-radius: 8px;
+      letter-spacing: 2px;
+    }
+
+    .drag-time-tooltip.visible { display: block; }
   </style>
 </head>
 <body>
@@ -154,6 +175,7 @@
     <div class="hand minute-hand" id="minute"></div>
     <div class="hand second-hand" id="second"></div>
     <div class="center-dot"></div>
+    <div id="drag-time-tooltip" class="drag-time-tooltip"></div>
   </div>
 
   <div class="alert-panel" id="alertPanel">
@@ -259,6 +281,15 @@
     const minuteHand = document.getElementById('minute');
     const secondHand = document.getElementById('second');
     const alertMsg = document.getElementById('alertMsg');
+    const dragTooltip = document.getElementById('drag-time-tooltip');
+
+    function degToTimeStr(deg) {
+      const totalMinutes = deg / 360 * 75;
+      const total = Math.floor(9 * 60 + totalMinutes);
+      const h = Math.floor(total / 60);
+      const m = total % 60;
+      return `${h}h${String(m).padStart(2, '0')}`;
+    }
     const alertStages = [
       { end: 10,  next: 'a confraternização', color: 'green'  },
       { end: 15,  next: 'a lição',            color: 'yellow' },
@@ -312,6 +343,8 @@
       dragging = true;
       dragDeg = pointerAngle(e.clientX, e.clientY);
       minuteHand.classList.add('dragging');
+      dragTooltip.textContent = degToTimeStr(dragDeg);
+      dragTooltip.classList.add('visible');
       e.preventDefault();
     });
 
@@ -319,17 +352,21 @@
       dragging = true;
       dragDeg = pointerAngle(e.touches[0].clientX, e.touches[0].clientY);
       minuteHand.classList.add('dragging');
+      dragTooltip.textContent = degToTimeStr(dragDeg);
+      dragTooltip.classList.add('visible');
       e.preventDefault();
     }, { passive: false });
 
     window.addEventListener('mousemove', e => {
       if (!dragging) return;
       dragDeg = pointerAngle(e.clientX, e.clientY);
+      dragTooltip.textContent = degToTimeStr(dragDeg);
     });
 
     window.addEventListener('touchmove', e => {
       if (!dragging) return;
       dragDeg = pointerAngle(e.touches[0].clientX, e.touches[0].clientY);
+      dragTooltip.textContent = degToTimeStr(dragDeg);
     }, { passive: true });
 
     window.addEventListener('mouseup', () => {
@@ -337,6 +374,7 @@
       startTime = Date.now() - (dragDeg / 6 * 75) * 1000;
       dragging = false;
       minuteHand.classList.remove('dragging');
+      dragTooltip.classList.remove('visible');
     });
 
     window.addEventListener('touchend', e => {
@@ -345,6 +383,7 @@
       startTime = Date.now() - (dragDeg / 6 * 75) * 1000;
       dragging = false;
       minuteHand.classList.remove('dragging');
+      dragTooltip.classList.remove('visible');
     });
 
     update();
