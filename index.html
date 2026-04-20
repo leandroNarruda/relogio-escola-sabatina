@@ -128,6 +128,20 @@
       max-width: 260px;
     }
 
+    @media (orientation: portrait) {
+      .alert-panel {
+        right: 50%;
+        top: calc(50% + 130px * var(--scale, 1) + 20px);
+        transform: translateX(50%);
+        max-width: min(90vw, 400px);
+        align-items: center;
+      }
+
+      .alert-msg {
+        text-align: center;
+      }
+    }
+
     .alert-msg {
       display: none;
       color: #fff;
