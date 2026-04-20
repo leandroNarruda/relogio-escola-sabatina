@@ -61,7 +61,7 @@
 
     .minute-hand {
       width: 5px;
-      height: 96px;
+      height: 130px;
       background: linear-gradient(to top, #ffffff, #e8e8ff);
       margin-left: -2.5px;
       border-radius: 4px 4px 2px 2px;
@@ -112,6 +112,38 @@
       overflow: hidden;
       pointer-events: none;
     }
+
+    .alert-panel {
+      position: fixed;
+      right: max(env(safe-area-inset-right), 5vmin);
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+      max-width: 180px;
+    }
+
+    .alert-msg {
+      display: none;
+      color: #fff;
+      font-family: sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.4;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border-left: 4px solid currentColor;
+    }
+
+    .alert-msg.visible { display: block; }
+
+    .alert-msg.green  { color: #50c878; background: rgba(80,200,120,0.12); }
+    .alert-msg.yellow { color: #ffd700; background: rgba(255,215,0,0.12); }
+    .alert-msg.blue   { color: #4a90d9; background: rgba(74,144,217,0.12); }
+    .alert-msg.orange { color: #ff8c00; background: rgba(255,140,0,0.12); }
+    .alert-msg.red    { color: #dc143c; background: rgba(220,20,60,0.12); }
   </style>
 </head>
 <body>
@@ -119,6 +151,10 @@
     <div class="hand minute-hand" id="minute"></div>
     <div class="hand second-hand" id="second"></div>
     <div class="center-dot"></div>
+  </div>
+
+  <div class="alert-panel" id="alertPanel">
+    <div class="alert-msg" id="alertMsg"></div>
   </div>
 
   <script>
@@ -197,9 +233,20 @@
       svg.appendChild(g);
     });
 
+    const shadowPath = document.createElementNS(svgNS, 'path');
+    shadowPath.setAttribute('fill', 'rgba(0, 0, 0, 0.78)');
+    shadowPath.setAttribute('stroke', 'none');
+    svg.appendChild(shadowPath);
+
     clockEl.insertBefore(svg, clockEl.firstChild);
 
-    [0, 48, 72, 288, 312].forEach(deg => {
+    const licaoStart = 72;
+    const licaoEnd = 288;
+    const licaoTicks = Array.from({ length: 6 }, (_, i) =>
+      licaoStart + ((licaoEnd - licaoStart) * (i + 1)) / 7
+    );
+
+    [0, 48, 72, 288, 312, ...licaoTicks].forEach(deg => {
       const tick = document.createElement('div');
       tick.classList.add('tick');
       tick.style.transform = `rotate(${deg}deg)`;
@@ -208,6 +255,14 @@
 
     const minuteHand = document.getElementById('minute');
     const secondHand = document.getElementById('second');
+    const alertMsg = document.getElementById('alertMsg');
+    const alertStages = [
+      { end: 10,  next: 'a confraternização', color: 'green'  },
+      { end: 15,  next: 'a lição',            color: 'yellow' },
+      { end: 60,  next: 'o pastoreio',        color: 'blue'   },
+      { end: 65,  next: 'o fechamento',       color: 'orange' },
+      { end: 75,  next: 'o fim',              color: 'red'    },
+    ];
 
     const startTime = Date.now();
 
@@ -215,7 +270,28 @@
       const elapsed = (Date.now() - startTime) / 1000;
 
       secondHand.style.transform = `rotate(${(elapsed % 60) * 6}deg)`;
-      minuteHand.style.transform = `rotate(${(elapsed / 75) * 6}deg)`;
+      const minuteDeg = (elapsed / 75) * 6;
+      minuteHand.style.transform = `rotate(${minuteDeg}deg)`;
+
+      const capped = Math.min(minuteDeg, 359.99);
+      if (capped > 0.05) {
+        shadowPath.setAttribute('d', segmentPath(130, 130, 126, 0, capped));
+      } else {
+        shadowPath.setAttribute('d', '');
+      }
+
+      const minutesElapsed = elapsed / 60;
+      let stageStart = 0;
+      const stage = alertStages.find(s => minutesElapsed < s.end);
+      if (stage) {
+        stageStart = alertStages[alertStages.indexOf(stage) - 1]?.end ?? 0;
+        const remaining = Math.ceil(stage.end - minutesElapsed);
+        const label = remaining === 1 ? 'minuto' : 'minutos';
+        alertMsg.textContent = `faltam ${remaining} ${label} para ${stage.next}`;
+        alertMsg.className = `alert-msg ${stage.color} visible`;
+      } else {
+        alertMsg.className = 'alert-msg';
+      }
     }
 
     update();
