@@ -148,6 +148,17 @@
     .alert-msg.orange { color: #ff8c00; background: rgba(255,140,0,0.12); }
     .alert-msg.red    { color: #dc143c; background: rgba(220,20,60,0.12); }
 
+    @keyframes urgente {
+      0%   { background: rgba(220,20,60,0.12); box-shadow: none;                         transform: scale(1);    color: #dc143c; }
+      40%  { background: rgba(220,20,60,0.85); box-shadow: 0 0 22px rgba(220,20,60,0.8); transform: scale(1.06); color: #fff;    }
+      100% { background: rgba(220,20,60,0.12); box-shadow: none;                         transform: scale(1);    color: #dc143c; }
+    }
+
+    .alert-msg.urgente {
+      animation: urgente 0.9s ease-in-out infinite;
+      border-left-color: #dc143c;
+    }
+
     .drag-time-tooltip {
       display: none;
       position: absolute;
@@ -336,10 +347,14 @@
     const alertStages = [
       { end: 10,  next: 'a confraternização', color: 'green'  },
       { end: 15,  next: 'a lição',            color: 'yellow' },
-      { end: 60,  next: 'o pastoreio',        color: 'blue'   },
       { end: 65,  next: 'o fechamento',       color: 'orange' },
       { end: 75,  next: 'o fim',              color: 'red'    },
     ];
+
+    const licaoDias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
+    const licaoMinStart = 15;
+    const licaoMinEnd   = 60;
+    const licaoDuracao  = licaoMinEnd - licaoMinStart; // 45 min
 
     let startTime = Date.now();
     let dragging = false;
@@ -371,14 +386,35 @@
       }
 
       const minutesElapsed = dragging ? (dragDeg / 6 * 75 / 60) : (elapsed / 60);
-      const stage = alertStages.find(s => minutesElapsed < s.end);
-      if (stage) {
-        const remaining = Math.ceil(stage.end - minutesElapsed);
-        const label = remaining === 1 ? 'minuto' : 'minutos';
-        alertMsg.textContent = `faltam ${remaining} ${label} para ${stage.next}`;
-        alertMsg.className = `alert-msg ${stage.color} visible`;
+
+      let remaining, color;
+
+      if (minutesElapsed >= licaoMinStart && minutesElapsed < licaoMinEnd) {
+        const pos = (minutesElapsed - licaoMinStart) / licaoDuracao * 7;
+        const diaIdx = Math.floor(pos);
+        if (diaIdx < 6) {
+          const nextDia = licaoDias[diaIdx];
+          const endDia = licaoMinStart + (diaIdx + 1) * (licaoDuracao / 7);
+          remaining = Math.ceil(endDia - minutesElapsed);
+          const label = remaining === 1 ? 'minuto' : 'minutos';
+          alertMsg.textContent = `faltam ${remaining} ${label} para a parte de ${nextDia}`;
+        } else {
+          remaining = Math.ceil(licaoMinEnd - minutesElapsed);
+          const label = remaining === 1 ? 'minuto' : 'minutos';
+          alertMsg.textContent = `faltam ${remaining} ${label} para o pastoreio`;
+        }
+        color = 'blue';
+        alertMsg.className = `alert-msg blue visible${remaining <= 1 ? ' urgente' : ''}`;
       } else {
-        alertMsg.className = 'alert-msg';
+        const stage = alertStages.find(s => minutesElapsed < s.end);
+        if (stage) {
+          remaining = Math.ceil(stage.end - minutesElapsed);
+          const label = remaining === 1 ? 'minuto' : 'minutos';
+          alertMsg.textContent = `faltam ${remaining} ${label} para ${stage.next}`;
+          alertMsg.className = `alert-msg ${stage.color} visible${remaining <= 1 ? ' urgente' : ''}`;
+        } else {
+          alertMsg.className = 'alert-msg';
+        }
       }
     }
 
