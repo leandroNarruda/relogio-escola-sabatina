@@ -258,6 +258,49 @@
       svg.appendChild(g);
     });
 
+    const defs = document.createElementNS(svgNS, 'defs');
+    svg.appendChild(defs);
+
+    const dias = ['Sábado', 'Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
+    const licaoStartDeg = 72;
+    const licaoSpan = 216; // 288 - 72
+    const arcR = 113;
+
+    dias.forEach((dia, i) => {
+      const s = licaoStartDeg + (licaoSpan * i) / 7;
+      const e = licaoStartDeg + (licaoSpan * (i + 1)) / 7;
+
+      const p1 = polarToXY(130, 130, arcR, s);
+      const p2 = polarToXY(130, 130, arcR, e);
+
+      const arcPath = document.createElementNS(svgNS, 'path');
+      const pathId = `dia-arc-${i}`;
+      arcPath.setAttribute('id', pathId);
+      arcPath.setAttribute('d',
+        `M ${p1.x.toFixed(3)} ${p1.y.toFixed(3)} ` +
+        `A ${arcR} ${arcR} 0 0 1 ${p2.x.toFixed(3)} ${p2.y.toFixed(3)}`
+      );
+      arcPath.setAttribute('fill', 'none');
+      defs.appendChild(arcPath);
+
+      const textEl = document.createElementNS(svgNS, 'text');
+      textEl.setAttribute('font-size', '8');
+      textEl.setAttribute('font-family', 'sans-serif');
+      textEl.setAttribute('font-weight', '600');
+      textEl.setAttribute('fill', '#fff');
+      textEl.setAttribute('fill-opacity', '0.9');
+
+      const textPath = document.createElementNS(svgNS, 'textPath');
+      textPath.setAttribute('href', `#${pathId}`);
+      textPath.setAttribute('startOffset', '50%');
+      textPath.setAttribute('text-anchor', 'middle');
+      textPath.setAttribute('dominant-baseline', 'middle');
+      textPath.textContent = dia;
+
+      textEl.appendChild(textPath);
+      svg.appendChild(textEl);
+    });
+
     const shadowPath = document.createElementNS(svgNS, 'path');
     shadowPath.setAttribute('fill', 'rgba(0, 0, 0, 0.78)');
     shadowPath.setAttribute('stroke', 'none');
