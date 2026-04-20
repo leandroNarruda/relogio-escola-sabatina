@@ -66,7 +66,10 @@
       margin-left: -2.5px;
       border-radius: 4px 4px 2px 2px;
       box-shadow: 0 0 0 1.5px rgba(0,0,0,0.6), 0 0 8px rgba(255,255,255,0.5);
+      cursor: grab;
     }
+
+    .minute-hand.dragging { cursor: grabbing; }
 
     .second-hand {
       width: 2px;
@@ -264,13 +267,26 @@
       { end: 75,  next: 'o fim',              color: 'red'    },
     ];
 
-    const startTime = Date.now();
+    let startTime = Date.now();
+    let dragging = false;
+    let dragDeg = 0;
+
+    function clockCenter() {
+      const r = clockEl.getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    }
+
+    function pointerAngle(clientX, clientY) {
+      const c = clockCenter();
+      const deg = Math.atan2(clientX - c.x, -(clientY - c.y)) * 180 / Math.PI;
+      return (deg + 360) % 360;
+    }
 
     function update() {
       const elapsed = (Date.now() - startTime) / 1000;
+      const minuteDeg = dragging ? dragDeg : (elapsed / 75) * 6;
 
       secondHand.style.transform = `rotate(${(elapsed % 60) * 6}deg)`;
-      const minuteDeg = (elapsed / 75) * 6;
       minuteHand.style.transform = `rotate(${minuteDeg}deg)`;
 
       const capped = Math.min(minuteDeg, 359.99);
@@ -280,11 +296,9 @@
         shadowPath.setAttribute('d', '');
       }
 
-      const minutesElapsed = elapsed / 60;
-      let stageStart = 0;
+      const minutesElapsed = dragging ? (dragDeg / 6 * 75 / 60) : (elapsed / 60);
       const stage = alertStages.find(s => minutesElapsed < s.end);
       if (stage) {
-        stageStart = alertStages[alertStages.indexOf(stage) - 1]?.end ?? 0;
         const remaining = Math.ceil(stage.end - minutesElapsed);
         const label = remaining === 1 ? 'minuto' : 'minutos';
         alertMsg.textContent = `faltam ${remaining} ${label} para ${stage.next}`;
@@ -293,6 +307,45 @@
         alertMsg.className = 'alert-msg';
       }
     }
+
+    minuteHand.addEventListener('mousedown', e => {
+      dragging = true;
+      dragDeg = pointerAngle(e.clientX, e.clientY);
+      minuteHand.classList.add('dragging');
+      e.preventDefault();
+    });
+
+    minuteHand.addEventListener('touchstart', e => {
+      dragging = true;
+      dragDeg = pointerAngle(e.touches[0].clientX, e.touches[0].clientY);
+      minuteHand.classList.add('dragging');
+      e.preventDefault();
+    }, { passive: false });
+
+    window.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      dragDeg = pointerAngle(e.clientX, e.clientY);
+    });
+
+    window.addEventListener('touchmove', e => {
+      if (!dragging) return;
+      dragDeg = pointerAngle(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
+
+    window.addEventListener('mouseup', () => {
+      if (!dragging) return;
+      startTime = Date.now() - (dragDeg / 6 * 75) * 1000;
+      dragging = false;
+      minuteHand.classList.remove('dragging');
+    });
+
+    window.addEventListener('touchend', e => {
+      if (!dragging) return;
+      dragDeg = pointerAngle(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+      startTime = Date.now() - (dragDeg / 6 * 75) * 1000;
+      dragging = false;
+      minuteHand.classList.remove('dragging');
+    });
 
     update();
     setInterval(update, 50);
