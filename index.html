@@ -149,10 +149,14 @@
     }
 
     @media (orientation: portrait) {
+      body {
+        flex-direction: column;
+        justify-content: space-around;
+      }
+
       .alert-panel {
-        right: 50%;
-        top: calc(50% + 130px * var(--scale, 1) + 20px);
-        transform: translateX(50%);
+        position: static;
+        transform: none;
         max-width: min(90vw, 400px);
         align-items: center;
       }
@@ -300,6 +304,8 @@
       color: rgba(255, 255, 255, 0.5);
       font-size: 1rem;
       letter-spacing: 0.05em;
+      text-align: center;
+      padding: 0 1rem;
     }
 
     #start-btn {
