@@ -67,6 +67,7 @@
       border-radius: 4px 4px 2px 2px;
       box-shadow: 0 0 0 1px rgba(0,0,0,0.6), 0 0 8px rgba(255,255,255,0.5);
       cursor: grab;
+      z-index: 15;
     }
 
     .minute-hand.dragging { cursor: grabbing; }
@@ -101,7 +102,7 @@
       height: 10px;
       background: #fff;
       border-radius: 50%;
-      z-index: 10;
+      z-index: 20;
       box-shadow: 0 0 0 1px rgba(0,0,0,0.6), 0 0 8px rgba(255,255,255,0.5);
     }
 
@@ -628,6 +629,15 @@
           const audioKey = stageAudioMap[stageKey] ??
             (stageKey.startsWith('licao-') && !lastStageKey.startsWith('licao-') ? 'licao' : null);
           if (audioKey) playAudio(audios.hora[audioKey]);
+          if (stageKey === 'fim') {
+            setTimeout(() => {
+              sessionStarted = false;
+              lastStageKey = null;
+              umMinutoPlayed = { confraternizacao: false, licao: false, fechamento: false, pastoreio: false };
+              alertMsg.className = 'alert-msg';
+              document.getElementById('start-overlay').classList.remove('hidden');
+            }, 4500);
+          }
         }
         lastStageKey = stageKey;
       }
