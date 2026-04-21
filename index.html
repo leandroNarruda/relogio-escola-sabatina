@@ -33,7 +33,7 @@
       border-radius: 50%;
       background: radial-gradient(circle at 30% 30%, #2a2a3e, #0d0d1a);
       box-shadow:
-        0 0 40px rgba(100, 100, 255, 0.15),
+        0 0 40px rgba(255, 255, 255, 0.15),
         inset 0 0 30px rgba(255, 255, 255, 0.5);
       position: relative;
       flex-shrink: 0;
@@ -42,13 +42,20 @@
 
 .tick {
       position: absolute;
-      width: 3px;
+      width: 4px;
       height: 16px;
+      border-radius: 2px;
       background: rgba(255, 255, 255, 1);
       left: 50%;
       top: 0;
       transform-origin: 50% 130px;
-      margin-left: -1.5px;
+      margin-left: -2px;
+    }
+
+    .tick-thin {
+      width: 1.5px;
+      height: 12px;
+      margin-left: -0.75px;
     }
 
     .hand {
@@ -61,7 +68,7 @@
 
     .minute-hand {
       width: 5px;
-      height: 130px;
+      height: 112px;
       background-color: white;
       margin-left: -2.5px;
       border-radius: 4px 4px 2px 2px;
@@ -79,6 +86,7 @@
       margin-left: -1px;
       border-radius: 2px;
       box-shadow: 0 0 6px rgba(255, 60, 60, 0.6);
+      z-index: 30;
     }
 
     .second-hand::after {
@@ -115,6 +123,17 @@
       border-radius: 50%;
       overflow: hidden;
       pointer-events: none;
+    }
+
+    .clock-border-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 260px;
+      height: 260px;
+      pointer-events: none;
+      z-index: 10;
+      overflow: visible;
     }
 
     .alert-panel {
@@ -157,11 +176,11 @@
 
     .alert-msg.visible { display: block; }
 
-    .alert-msg.green  { color: #50c878; background: rgba(80,200,120,0.12); }
-    .alert-msg.yellow { color: #ffd700; background: rgba(255,215,0,0.12); }
-    .alert-msg.blue   { color: #4a90d9; background: rgba(74,144,217,0.12); }
-    .alert-msg.orange { color: #ff8c00; background: rgba(255,140,0,0.12); }
-    .alert-msg.red    { color: #dc143c; background: rgba(220,20,60,0.12); }
+    .alert-msg.green,
+    .alert-msg.yellow,
+    .alert-msg.blue,
+    .alert-msg.orange,
+    .alert-msg.red    { color: #e8e6f0; background: rgba(232,230,240,0.10); }
 
     @keyframes urgente {
       0%   { background: rgba(220,20,60,0.12); box-shadow: none;                         transform: scale(1);    color: #dc143c; }
@@ -337,19 +356,30 @@
       return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
     }
 
+    const donutInnerRadius = 30;
+
     function segmentPath(cx, cy, r, startDeg, endDeg) {
-      const s = polarToXY(cx, cy, r, startDeg);
-      const e = polarToXY(cx, cy, r, endDeg);
+      const ri = donutInnerRadius;
+      const s  = polarToXY(cx, cy, r,  startDeg);
+      const e  = polarToXY(cx, cy, r,  endDeg);
+      const si = polarToXY(cx, cy, ri, startDeg);
+      const ei = polarToXY(cx, cy, ri, endDeg);
       const large = endDeg - startDeg > 180 ? 1 : 0;
-      return `M ${cx} ${cy} L ${s.x.toFixed(3)} ${s.y.toFixed(3)} A ${r} ${r} 0 ${large} 1 ${e.x.toFixed(3)} ${e.y.toFixed(3)} Z`;
+      return [
+        `M ${s.x.toFixed(3)} ${s.y.toFixed(3)}`,
+        `A ${r} ${r} 0 ${large} 1 ${e.x.toFixed(3)} ${e.y.toFixed(3)}`,
+        `L ${ei.x.toFixed(3)} ${ei.y.toFixed(3)}`,
+        `A ${ri} ${ri} 0 ${large} 0 ${si.x.toFixed(3)} ${si.y.toFixed(3)}`,
+        'Z'
+      ].join(' ');
     }
 
     const segments = [
-      { start:   0, end:  72, color: '#00e676' }, // verde   — 0–15 min
-      { start:  72, end:  96, color: '#ffea00' }, // amarelo — 15–20 min
-      { start:  96, end: 288, color: '#00b0ff' }, // azul    — 20–60 min
-      { start: 288, end: 336, color: '#ff1744' }, // vermelho — 60–70 min (fechamento)
-      { start: 336, end: 360, color: '#ff6d00' }, // laranja  — 70–75 min (pastoreio)
+      { start:   0, end:  72, color: '#0c0636' }, // 0–15 min
+      { start:  72, end:  96, color: '#095169' }, // 15–20 min
+      { start:  96, end: 288, color: '#059b9a' }, // 20–60 min
+      { start: 288, end: 336, color: '#53ba83' }, // 60–70 min (fechamento)
+      { start: 336, end: 360, color: '#9fd86b' }, // 70–75 min (pastoreio)
     ];
 
     const svgNS = 'http://www.w3.org/2000/svg';
@@ -443,6 +473,7 @@
     shadowPath.setAttribute('stroke', 'none');
     svg.appendChild(shadowPath);
 
+
     clockEl.insertBefore(svg, clockEl.firstChild);
 
     const licaoStart = 96;
@@ -451,12 +482,32 @@
       licaoStart + ((licaoEnd - licaoStart) * (i + 1)) / 7
     );
 
-    [0, 72, 96, 288, 336, ...licaoTicks].forEach(deg => {
+    [0, 72, 96, 288, 336].forEach(deg => {
       const tick = document.createElement('div');
       tick.classList.add('tick');
       tick.style.transform = `rotate(${deg}deg)`;
       clockEl.appendChild(tick);
     });
+
+    licaoTicks.forEach(deg => {
+      const tick = document.createElement('div');
+      tick.classList.add('tick', 'tick-thin');
+      tick.style.transform = `rotate(${deg}deg)`;
+      clockEl.appendChild(tick);
+    });
+
+    const borderSvg = document.createElementNS(svgNS, 'svg');
+    borderSvg.setAttribute('viewBox', '0 0 260 260');
+    borderSvg.classList.add('clock-border-overlay');
+    const borderCircle = document.createElementNS(svgNS, 'circle');
+    borderCircle.setAttribute('cx', '130');
+    borderCircle.setAttribute('cy', '130');
+    borderCircle.setAttribute('r', '128');
+    borderCircle.setAttribute('fill', 'none');
+    borderCircle.setAttribute('stroke', 'white');
+    borderCircle.setAttribute('stroke-width', '6');
+    borderSvg.appendChild(borderCircle);
+    clockEl.appendChild(borderSvg);
 
     const minuteHand = document.getElementById('minute');
     const secondHand = document.getElementById('second');
@@ -513,17 +564,17 @@
     const licaoDiasKeys = ['sabado', 'domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta'];
 
     const stageInfo = {
-      abertura:         { label: 'Abertura',         color: '#50c878', palette: ['#50c878','#8ee8a8','#2e9d5a','#ffffff'] },
-      confraternizacao: { label: 'Confraternização', color: '#ffd700', palette: ['#ffd700','#ffe866','#c9a800','#ffffff'] },
-      'licao-sabado':   { label: 'Lição · Sábado',   color: '#4a90d9', palette: ['#4a90d9','#7ab0e8','#2a6eb0','#ffffff'] },
-      'licao-domingo':  { label: 'Lição · Domingo',  color: '#4a90d9', palette: ['#4a90d9','#7ab0e8','#2a6eb0','#ffffff'] },
-      'licao-segunda':  { label: 'Lição · Segunda',  color: '#4a90d9', palette: ['#4a90d9','#7ab0e8','#2a6eb0','#ffffff'] },
-      'licao-terca':    { label: 'Lição · Terça',    color: '#4a90d9', palette: ['#4a90d9','#7ab0e8','#2a6eb0','#ffffff'] },
-      'licao-quarta':   { label: 'Lição · Quarta',   color: '#4a90d9', palette: ['#4a90d9','#7ab0e8','#2a6eb0','#ffffff'] },
-      'licao-quinta':   { label: 'Lição · Quinta',   color: '#4a90d9', palette: ['#4a90d9','#7ab0e8','#2a6eb0','#ffffff'] },
-      'licao-sexta':    { label: 'Lição · Sexta',    color: '#4a90d9', palette: ['#4a90d9','#7ab0e8','#2a6eb0','#ffffff'] },
-      pastoreio:        { label: 'Pastoreio',        color: '#ff8c00', palette: ['#ff8c00','#ffb347','#cc6f00','#ffffff'] },
-      fechamento:       { label: 'Fechamento',       color: '#dc143c', palette: ['#dc143c','#ff5673','#9b0e2a','#ffffff'] },
+      abertura:         { label: 'Abertura',         color: '#e8e6f0', palette: ['#e8e6f0','#ffffff','#b0adc8','#ffffff'] },
+      confraternizacao: { label: 'Confraternização', color: '#e8e6f0', palette: ['#e8e6f0','#ffffff','#b0adc8','#ffffff'] },
+      'licao-sabado':   { label: 'Lição · Sábado',   color: '#e8e6f0', palette: ['#e8e6f0','#ffffff','#b0adc8','#ffffff'] },
+      'licao-domingo':  { label: 'Lição · Domingo',  color: '#e8e6f0', palette: ['#e8e6f0','#ffffff','#b0adc8','#ffffff'] },
+      'licao-segunda':  { label: 'Lição · Segunda',  color: '#e8e6f0', palette: ['#e8e6f0','#ffffff','#b0adc8','#ffffff'] },
+      'licao-terca':    { label: 'Lição · Terça',    color: '#e8e6f0', palette: ['#e8e6f0','#ffffff','#b0adc8','#ffffff'] },
+      'licao-quarta':   { label: 'Lição · Quarta',   color: '#e8e6f0', palette: ['#e8e6f0','#ffffff','#b0adc8','#ffffff'] },
+      'licao-quinta':   { label: 'Lição · Quinta',   color: '#e8e6f0', palette: ['#e8e6f0','#ffffff','#b0adc8','#ffffff'] },
+      'licao-sexta':    { label: 'Lição · Sexta',    color: '#e8e6f0', palette: ['#e8e6f0','#ffffff','#b0adc8','#ffffff'] },
+      pastoreio:        { label: 'Pastoreio',        color: '#e8e6f0', palette: ['#e8e6f0','#ffffff','#b0adc8','#ffffff'] },
+      fechamento:       { label: 'Fechamento',       color: '#e8e6f0', palette: ['#e8e6f0','#ffffff','#b0adc8','#ffffff'] },
       fim:              { label: 'Fim',              color: '#dc143c', palette: ['#dc143c','#ff5673','#9b0e2a','#ffffff'] },
     };
 
