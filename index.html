@@ -197,6 +197,54 @@
       border-left-color: #dc143c;
     }
 
+    .audio-warning {
+      position: fixed;
+      left: 50%;
+      bottom: max(env(safe-area-inset-bottom), 20px);
+      z-index: 2000;
+      display: none;
+      width: min(440px, calc(100vw - 32px));
+      transform: translateX(-50%);
+      gap: 0.8rem;
+      align-items: center;
+      padding: 0.8rem 1rem;
+      border: 1px solid rgba(255, 215, 94, 0.6);
+      border-radius: 12px;
+      background: rgba(24, 22, 35, 0.96);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+      color: #fff;
+      font-family: sans-serif;
+    }
+
+    .audio-warning.visible {
+      display: flex;
+    }
+
+    .audio-warning p {
+      flex: 1;
+      font-size: 0.9rem;
+      line-height: 1.35;
+    }
+
+    .audio-warning button {
+      flex: 0 0 auto;
+      border: 1px solid rgba(255, 215, 94, 0.8);
+      border-radius: 8px;
+      background: rgba(255, 215, 94, 0.14);
+      color: #fff;
+      padding: 0.55rem 0.7rem;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    @media (max-width: 460px) {
+      .audio-warning {
+        align-items: stretch;
+        flex-direction: column;
+      }
+    }
+
     .fx-layer {
       position: fixed;
       inset: 0;
@@ -558,6 +606,11 @@
     <div class="alert-msg" id="alertMsg"></div>
   </div>
 
+  <div class="audio-warning" id="audio-warning" role="alert" aria-live="assertive">
+    <p>O navegador bloqueou os avisos sonoros. Toque para ativar o som.</p>
+    <button id="enable-audio-btn" type="button">Ativar som</button>
+  </div>
+
   <script>
     const clockEl = document.getElementById('clock');
 
@@ -864,14 +917,24 @@
     };
 
     const allAudios = Object.values(audios).flatMap(Object.values);
+    const audioWarning = document.getElementById('audio-warning');
+    const enableAudioButton = document.getElementById('enable-audio-btn');
     allAudios.forEach(audio => {
       audio.preload = 'auto';
       audio.load();
     });
 
+    function showAudioWarning() {
+      audioWarning.classList.add('visible');
+    }
+
+    function hideAudioWarning() {
+      audioWarning.classList.remove('visible');
+    }
+
     // Mobile browsers only allow delayed playback after an audio element was started by a user gesture.
     function unlockAudioPlayback() {
-      allAudios.forEach(audio => {
+      const preparations = allAudios.map(audio => {
         audio.muted = true;
         audio.currentTime = 0;
         const resetAudio = () => {
@@ -885,20 +948,28 @@
 
           if (!playPromise) {
             window.setTimeout(resetAudio, 0);
-            return;
+            return Promise.resolve();
           }
 
-          playPromise
+          return playPromise
             .then(resetAudio)
             .catch(error => {
+              resetAudio();
               audio.muted = false;
-              console.warn('O navegador bloqueou a preparação de um aviso sonoro.', error);
+              throw error;
             });
         } catch (error) {
-          audio.muted = false;
-          console.warn('O navegador não conseguiu preparar um aviso sonoro.', error);
+          resetAudio();
+          return Promise.reject(error);
         }
       });
+
+      Promise.all(preparations)
+        .then(hideAudioWarning)
+        .catch(error => {
+          console.warn('O navegador bloqueou a preparação de um aviso sonoro.', error);
+          showAudioWarning();
+        });
     }
 
     let umMinutoPlayed = createMinuteFlags();
@@ -908,6 +979,7 @@
       audio.currentTime = 0;
       audio.play().catch(error => {
         console.warn('O navegador bloqueou um aviso sonoro.', error);
+        showAudioWarning();
       });
     }
 
@@ -1005,6 +1077,8 @@
       umMinutoPlayed = createMinuteFlags();
       sessionStarted = true;
     });
+
+    enableAudioButton.addEventListener('click', unlockAudioPlayback);
 
     const settingsScreen = document.getElementById('settings-screen');
     const stageList = document.getElementById('stage-list');
