@@ -863,12 +863,52 @@
       },
     };
 
+    const allAudios = Object.values(audios).flatMap(Object.values);
+    allAudios.forEach(audio => {
+      audio.preload = 'auto';
+      audio.load();
+    });
+
+    // Mobile browsers only allow delayed playback after an audio element was started by a user gesture.
+    function unlockAudioPlayback() {
+      allAudios.forEach(audio => {
+        audio.muted = true;
+        audio.currentTime = 0;
+        const resetAudio = () => {
+          audio.pause();
+          audio.currentTime = 0;
+          audio.muted = false;
+        };
+
+        try {
+          const playPromise = audio.play();
+
+          if (!playPromise) {
+            window.setTimeout(resetAudio, 0);
+            return;
+          }
+
+          playPromise
+            .then(resetAudio)
+            .catch(error => {
+              audio.muted = false;
+              console.warn('O navegador bloqueou a preparação de um aviso sonoro.', error);
+            });
+        } catch (error) {
+          audio.muted = false;
+          console.warn('O navegador não conseguiu preparar um aviso sonoro.', error);
+        }
+      });
+    }
+
     let umMinutoPlayed = createMinuteFlags();
 
     function playAudio(audio) {
       if (!audio) return;
       audio.currentTime = 0;
-      audio.play().catch(() => {});
+      audio.play().catch(error => {
+        console.warn('O navegador bloqueou um aviso sonoro.', error);
+      });
     }
 
     function createMinuteFlags() {
@@ -957,6 +997,7 @@
     let dragDeg = 0;
 
     document.getElementById('start-btn').addEventListener('click', () => {
+      unlockAudioPlayback();
       document.getElementById('start-overlay').classList.add('hidden');
       startTime = Date.now();
       lastStageKey = null;
