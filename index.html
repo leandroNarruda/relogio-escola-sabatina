@@ -294,7 +294,6 @@
       justify-content: center;
       gap: 1.5rem;
       z-index: 9999;
-      cursor: pointer;
     }
 
     #start-overlay.hidden { display: none; }
@@ -308,7 +307,16 @@
       padding: 0 1rem;
     }
 
-    #start-btn {
+    .overlay-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    #start-btn,
+    #settings-btn,
+    .settings-action {
       background: none;
       border: 2px solid rgba(255, 255, 255, 0.3);
       border-radius: 50px;
@@ -322,17 +330,223 @@
       transition: border-color 0.2s, box-shadow 0.2s;
     }
 
-    #start-btn:hover {
+    #settings-btn {
+      font-size: 0.95rem;
+      padding: 0.55rem 1.4rem;
+      color: rgba(255, 255, 255, 0.82);
+    }
+
+    #start-btn:hover,
+    #settings-btn:hover,
+    .settings-action:hover {
       border-color: rgba(255, 255, 255, 0.7);
       box-shadow: 0 0 20px rgba(100, 100, 255, 0.3);
+    }
+
+    #settings-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: none;
+      overflow: auto;
+      background: #0f0f1a;
+      padding: max(env(safe-area-inset-top), 24px) max(env(safe-area-inset-right), 18px) max(env(safe-area-inset-bottom), 24px) max(env(safe-area-inset-left), 18px);
+      font-family: sans-serif;
+      color: #fff;
+    }
+
+    #settings-screen.visible {
+      display: block;
+    }
+
+    .settings-panel {
+      width: min(920px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .settings-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .settings-header h1 {
+      font-size: clamp(1.45rem, 5vw, 2.2rem);
+      line-height: 1.1;
+    }
+
+    .settings-card {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      padding: 1rem;
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .settings-field {
+      display: grid;
+      gap: 0.35rem;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .settings-field input,
+    .settings-field select {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.28);
+      color: #fff;
+      padding: 0.55rem 0.65rem;
+      font: inherit;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .stage-list {
+      display: grid;
+      gap: 0.75rem;
+      margin-top: 0.85rem;
+    }
+
+    .stage-row {
+      display: grid;
+      grid-template-columns: 1.3fr 96px 84px auto;
+      gap: 0.55rem;
+      align-items: end;
+      padding: 0.75rem;
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.22);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .stage-tools {
+      display: flex;
+      gap: 0.35rem;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .icon-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .settings-footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 0.7rem;
+      align-items: center;
+    }
+
+    .settings-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    .settings-action {
+      font-size: 0.9rem;
+      padding: 0.55rem 1rem;
+      letter-spacing: 0.04em;
+    }
+
+    .settings-action.primary {
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.55);
+    }
+
+    .settings-summary {
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 720px) {
+      .settings-header,
+      .settings-footer {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .stage-row {
+        grid-template-columns: 1fr 82px;
+      }
+
+      .stage-row .settings-field:nth-child(3),
+      .stage-tools {
+        grid-column: 1 / -1;
+      }
+
+      .stage-tools {
+        justify-content: flex-start;
+      }
     }
   </style>
 </head>
 <body>
   <div id="start-overlay">
-    <button id="start-btn">▶ Iniciar relógio</button>
+    <div class="overlay-actions">
+      <button id="start-btn">▶ Iniciar relógio</button>
+      <button id="settings-btn" type="button">⚙ Configurações</button>
+    </div>
     <span>Toque para começar a cronometrar a programação</span>
   </div>
+
+  <section id="settings-screen" aria-hidden="true">
+    <div class="settings-panel">
+      <div class="settings-header">
+        <h1>Configurações do relógio</h1>
+        <button class="settings-action" id="close-settings" type="button">Voltar</button>
+      </div>
+
+      <div class="settings-card">
+        <div class="settings-grid">
+          <label class="settings-field">
+            Horário inicial
+            <input id="setting-start-time" type="time" />
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <strong>Programação</strong>
+        <div class="stage-list" id="stage-list"></div>
+      </div>
+
+      <div class="settings-footer">
+        <div class="settings-summary" id="settings-summary"></div>
+        <div class="settings-actions">
+          <button class="settings-action" id="add-stage" type="button">Adicionar etapa</button>
+          <button class="settings-action" id="reset-settings" type="button">Restaurar padrão</button>
+          <button class="settings-action primary" id="save-settings" type="button">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </section>
   <div class="clock-face" id="clock">
     <div class="hand minute-hand" id="minute"></div>
     <div class="hand second-hand" id="second"></div>
@@ -380,140 +594,245 @@
       ].join(' ');
     }
 
-    const segments = [
-      { start:   0, end:  72, color: '#0c0636' }, // 0–15 min
-      { start:  72, end:  96, color: '#095169' }, // 15–20 min
-      { start:  96, end: 288, color: '#059b9a' }, // 20–60 min
-      { start: 288, end: 336, color: '#53ba83' }, // 60–70 min (fechamento)
-      { start: 336, end: 360, color: '#9fd86b' }, // 70–75 min (pastoreio)
-    ];
-
     const svgNS = 'http://www.w3.org/2000/svg';
-    const svg = document.createElementNS(svgNS, 'svg');
-    svg.setAttribute('viewBox', '0 0 260 260');
-    svg.classList.add('segments');
-
-    segments.forEach(({ start, end, color }) => {
-      const path = document.createElementNS(svgNS, 'path');
-      path.setAttribute('d', segmentPath(130, 130, 126, start, end));
-      path.setAttribute('fill', color);
-      path.setAttribute('fill-opacity', '0.85');
-      path.setAttribute('stroke', 'none');
-      svg.appendChild(path);
-    });
-
-    const labels = [
-      { midDeg:  36, text: 'Abertura' },
-      { midDeg:  84, text: 'Confraternização' },
-      { midDeg: 192, text: 'Lição' },
-      { midDeg: 312, text: 'Fechamento' },
-      { midDeg: 348, text: 'Pastoreio' },
-    ];
-
-    labels.forEach(({ midDeg, text: label }) => {
-      const r = 80;
-      const { x, y } = polarToXY(130, 130, r, midDeg);
-      const rot = (midDeg > 90 && midDeg < 270) ? midDeg + 90 : midDeg - 90;
-
-      const g = document.createElementNS(svgNS, 'g');
-      g.setAttribute('transform', `translate(${x.toFixed(3)} ${y.toFixed(3)}) rotate(${rot})`);
-
-      const textEl = document.createElementNS(svgNS, 'text');
-      textEl.setAttribute('text-anchor', 'middle');
-      textEl.setAttribute('dominant-baseline', 'central');
-      textEl.setAttribute('fill', '#fff');
-      textEl.setAttribute('font-size', '10');
-      textEl.setAttribute('font-family', 'sans-serif');
-      textEl.setAttribute('font-weight', '600');
-      textEl.textContent = label;
-
-      g.appendChild(textEl);
-      svg.appendChild(g);
-    });
-
-    const defs = document.createElementNS(svgNS, 'defs');
-    svg.appendChild(defs);
-
     const dias = ['Sábado', 'Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
-    const licaoStartDeg = 96;
-    const licaoSpan = 192; // 288 - 96
-    const arcR = 113;
+    const licaoDias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
+    const licaoDiasKeys = ['sabado', 'domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta'];
+    const configStorageKey = 'relogio-escola-sabatina-config-v1';
+    const defaultConfig = {
+      startTime: '09:00',
+      stages: [
+        { label: 'Abertura', duration: 15, color: '#0c0636', kind: 'normal', audioKey: 'confraternizacao' },
+        { label: 'Confraternização', duration: 5, color: '#095169', kind: 'normal', audioKey: 'licao' },
+        { label: 'Lição', duration: 40, color: '#059b9a', kind: 'lesson', audioKey: 'fechamento' },
+        { label: 'Fechamento', duration: 10, color: '#53ba83', kind: 'normal', audioKey: 'pastoreio' },
+        { label: 'Pastoreio', duration: 5, color: '#9fd86b', kind: 'normal', audioKey: null },
+      ],
+    };
 
-    dias.forEach((dia, i) => {
-      const s = licaoStartDeg + (licaoSpan * i) / 7;
-      const e = licaoStartDeg + (licaoSpan * (i + 1)) / 7;
+    const stageAudioMap = {
+      confraternizacao: 'confraternizacao',
+      licao:            'licao',
+      fechamento:       'fechamento',
+      pastoreio:        'pastoreio',
+    };
 
-      const p1 = polarToXY(130, 130, arcR, s);
-      const p2 = polarToXY(130, 130, arcR, e);
+    let config = loadConfig();
+    let timeline = [];
+    let totalSessionMinutes = 75;
+    let svg = null;
+    let shadowPath = null;
+    let borderSvg = null;
+    let settingsDraft = cloneConfig(config);
 
-      const arcPath = document.createElementNS(svgNS, 'path');
-      const pathId = `dia-arc-${i}`;
-      arcPath.setAttribute('id', pathId);
-      arcPath.setAttribute('d',
-        `M ${p1.x.toFixed(3)} ${p1.y.toFixed(3)} ` +
-        `A ${arcR} ${arcR} 0 0 1 ${p2.x.toFixed(3)} ${p2.y.toFixed(3)}`
-      );
-      arcPath.setAttribute('fill', 'none');
-      defs.appendChild(arcPath);
+    function cloneConfig(value) {
+      return JSON.parse(JSON.stringify(value));
+    }
 
-      const textEl = document.createElementNS(svgNS, 'text');
-      textEl.setAttribute('font-size', '8');
-      textEl.setAttribute('font-family', 'sans-serif');
-      textEl.setAttribute('font-weight', '600');
-      textEl.setAttribute('fill', '#fff');
-      textEl.setAttribute('fill-opacity', '0.9');
+    function normalizeConfig(value) {
+      const source = value && Array.isArray(value.stages) ? value : defaultConfig;
+      const stages = source.stages
+        .map((stage, index) => ({
+          label: String(stage.label || `Etapa ${index + 1}`).trim() || `Etapa ${index + 1}`,
+          duration: Math.max(1, Number(stage.duration) || 1),
+          color: /^#[0-9a-f]{6}$/i.test(stage.color || '') ? stage.color : defaultConfig.stages[index % defaultConfig.stages.length].color,
+          kind: inferStageKind(stage, index),
+          audioKey: inferStageAudio(stage, index),
+        }))
+        .filter(stage => stage.duration > 0);
 
-      const textPath = document.createElementNS(svgNS, 'textPath');
-      textPath.setAttribute('href', `#${pathId}`);
-      textPath.setAttribute('startOffset', '50%');
-      textPath.setAttribute('text-anchor', 'middle');
-      textPath.setAttribute('dominant-baseline', 'middle');
-      textPath.textContent = dia;
+      return {
+        startTime: /^\d{2}:\d{2}$/.test(source.startTime || '') ? source.startTime : defaultConfig.startTime,
+        stages: stages.length ? stages : cloneConfig(defaultConfig.stages),
+      };
+    }
 
-      textEl.appendChild(textPath);
-      svg.appendChild(textEl);
-    });
+    function inferStageKind(stage, index) {
+      if (stage.kind === 'lesson') return 'lesson';
+      if (String(stage.label || '').trim().toLowerCase() === 'lição') return 'lesson';
+      return defaultConfig.stages[index]?.kind === 'lesson' ? 'lesson' : 'normal';
+    }
 
-    const shadowPath = document.createElementNS(svgNS, 'path');
-    shadowPath.setAttribute('fill', 'rgba(0, 0, 0, 0.78)');
-    shadowPath.setAttribute('stroke', 'none');
-    svg.appendChild(shadowPath);
+    function inferStageAudio(stage, index) {
+      if (stage.audioKey && stageAudioMap[stage.audioKey]) return stage.audioKey;
+      return defaultConfig.stages[index]?.audioKey || null;
+    }
 
+    function loadConfig() {
+      try {
+        const stored = localStorage.getItem(configStorageKey);
+        return normalizeConfig(stored ? JSON.parse(stored) : defaultConfig);
+      } catch {
+        return cloneConfig(defaultConfig);
+      }
+    }
 
-    clockEl.insertBefore(svg, clockEl.firstChild);
+    function saveConfig(nextConfig) {
+      config = normalizeConfig(nextConfig);
+      localStorage.setItem(configStorageKey, JSON.stringify(config));
+      renderClockFace();
+      lastStageKey = null;
+      lastStageIndex = null;
+      umMinutoPlayed = createMinuteFlags();
+    }
 
-    const licaoStart = 96;
-    const licaoEnd = 288;
-    const licaoTicks = Array.from({ length: 6 }, (_, i) =>
-      licaoStart + ((licaoEnd - licaoStart) * (i + 1)) / 7
-    );
+    function minutesToDeg(minutes) {
+      return (minutes / totalSessionMinutes) * 360;
+    }
 
-    [0, 72, 96, 288, 336].forEach(deg => {
-      const tick = document.createElement('div');
-      tick.classList.add('tick');
-      tick.style.transform = `rotate(${deg}deg)`;
-      clockEl.appendChild(tick);
-    });
+    function stageKey(stage, index) {
+      return `${stage.kind === 'lesson' ? 'licao' : 'stage'}-${index}`;
+    }
 
-    licaoTicks.forEach(deg => {
-      const tick = document.createElement('div');
-      tick.classList.add('tick', 'tick-thin');
-      tick.style.transform = `rotate(${deg}deg)`;
-      clockEl.appendChild(tick);
-    });
+    function nextStageName(index) {
+      return config.stages[index + 1]?.label.toLowerCase() || 'o fim';
+    }
 
-    const borderSvg = document.createElementNS(svgNS, 'svg');
-    borderSvg.setAttribute('viewBox', '0 0 260 260');
-    borderSvg.classList.add('clock-border-overlay');
-    const borderCircle = document.createElementNS(svgNS, 'circle');
-    borderCircle.setAttribute('cx', '130');
-    borderCircle.setAttribute('cy', '130');
-    borderCircle.setAttribute('r', '128');
-    borderCircle.setAttribute('fill', 'none');
-    borderCircle.setAttribute('stroke', 'white');
-    borderCircle.setAttribute('stroke-width', '6');
-    borderSvg.appendChild(borderCircle);
-    clockEl.appendChild(borderSvg);
+    function buildTimeline() {
+      let cursor = 0;
+      totalSessionMinutes = config.stages.reduce((sum, stage) => sum + stage.duration, 0);
+      timeline = config.stages.map((stage, index) => {
+        const start = cursor;
+        const end = cursor + stage.duration;
+        cursor = end;
+        return {
+          ...stage,
+          index,
+          key: stageKey(stage, index),
+          start,
+          end,
+          startDeg: minutesToDeg(start),
+          endDeg: minutesToDeg(end),
+        };
+      });
+    }
+
+    function textColorForLabel(stage) {
+      return stage.duration < totalSessionMinutes * 0.08 ? '9' : '10';
+    }
+
+    function renderClockFace() {
+      buildTimeline();
+
+      clockEl.querySelectorAll('.segments, .tick, .clock-border-overlay').forEach(el => el.remove());
+
+      svg = document.createElementNS(svgNS, 'svg');
+      svg.setAttribute('viewBox', '0 0 260 260');
+      svg.classList.add('segments');
+
+      timeline.forEach(stage => {
+        const path = document.createElementNS(svgNS, 'path');
+        path.setAttribute('d', segmentPath(130, 130, 126, stage.startDeg, stage.endDeg));
+        path.setAttribute('fill', stage.color);
+        path.setAttribute('fill-opacity', '0.85');
+        path.setAttribute('stroke', 'none');
+        svg.appendChild(path);
+      });
+
+      timeline.forEach(stage => {
+        const midDeg = (stage.startDeg + stage.endDeg) / 2;
+        const r = 80;
+        const { x, y } = polarToXY(130, 130, r, midDeg);
+        const rot = (midDeg > 90 && midDeg < 270) ? midDeg + 90 : midDeg - 90;
+
+        const g = document.createElementNS(svgNS, 'g');
+        g.setAttribute('transform', `translate(${x.toFixed(3)} ${y.toFixed(3)}) rotate(${rot})`);
+
+        const textEl = document.createElementNS(svgNS, 'text');
+        textEl.setAttribute('text-anchor', 'middle');
+        textEl.setAttribute('dominant-baseline', 'central');
+        textEl.setAttribute('fill', '#fff');
+        textEl.setAttribute('font-size', textColorForLabel(stage));
+        textEl.setAttribute('font-family', 'sans-serif');
+        textEl.setAttribute('font-weight', '600');
+        textEl.textContent = stage.label;
+
+        g.appendChild(textEl);
+        svg.appendChild(g);
+      });
+
+      const defs = document.createElementNS(svgNS, 'defs');
+      svg.appendChild(defs);
+
+      timeline
+        .filter(stage => stage.kind === 'lesson')
+        .forEach(stage => {
+          const arcR = 113;
+
+          dias.forEach((dia, i) => {
+            const s = stage.startDeg + ((stage.endDeg - stage.startDeg) * i) / 7;
+            const e = stage.startDeg + ((stage.endDeg - stage.startDeg) * (i + 1)) / 7;
+            const p1 = polarToXY(130, 130, arcR, s);
+            const p2 = polarToXY(130, 130, arcR, e);
+
+            const arcPath = document.createElementNS(svgNS, 'path');
+            const pathId = `dia-arc-${stage.index}-${i}`;
+            arcPath.setAttribute('id', pathId);
+            arcPath.setAttribute('d',
+              `M ${p1.x.toFixed(3)} ${p1.y.toFixed(3)} ` +
+              `A ${arcR} ${arcR} 0 0 1 ${p2.x.toFixed(3)} ${p2.y.toFixed(3)}`
+            );
+            arcPath.setAttribute('fill', 'none');
+            defs.appendChild(arcPath);
+
+            const textEl = document.createElementNS(svgNS, 'text');
+            textEl.setAttribute('font-size', '8');
+            textEl.setAttribute('font-family', 'sans-serif');
+            textEl.setAttribute('font-weight', '600');
+            textEl.setAttribute('fill', '#fff');
+            textEl.setAttribute('fill-opacity', '0.9');
+
+            const textPath = document.createElementNS(svgNS, 'textPath');
+            textPath.setAttribute('href', `#${pathId}`);
+            textPath.setAttribute('startOffset', '50%');
+            textPath.setAttribute('text-anchor', 'middle');
+            textPath.setAttribute('dominant-baseline', 'middle');
+            textPath.textContent = dia;
+
+            textEl.appendChild(textPath);
+            svg.appendChild(textEl);
+          });
+        });
+
+      shadowPath = document.createElementNS(svgNS, 'path');
+      shadowPath.setAttribute('fill', 'rgba(0, 0, 0, 0.78)');
+      shadowPath.setAttribute('stroke', 'none');
+      svg.appendChild(shadowPath);
+
+      clockEl.insertBefore(svg, clockEl.firstChild);
+
+      timeline.forEach(stage => {
+        const tick = document.createElement('div');
+        tick.classList.add('tick');
+        tick.style.transform = `rotate(${stage.startDeg}deg)`;
+        clockEl.appendChild(tick);
+
+        if (stage.kind === 'lesson') {
+          Array.from({ length: 6 }, (_, i) => stage.startDeg + ((stage.endDeg - stage.startDeg) * (i + 1)) / 7)
+            .forEach(deg => {
+              const thinTick = document.createElement('div');
+              thinTick.classList.add('tick', 'tick-thin');
+              thinTick.style.transform = `rotate(${deg}deg)`;
+              clockEl.appendChild(thinTick);
+            });
+        }
+      });
+
+      borderSvg = document.createElementNS(svgNS, 'svg');
+      borderSvg.setAttribute('viewBox', '0 0 260 260');
+      borderSvg.classList.add('clock-border-overlay');
+      const borderCircle = document.createElementNS(svgNS, 'circle');
+      borderCircle.setAttribute('cx', '130');
+      borderCircle.setAttribute('cy', '130');
+      borderCircle.setAttribute('r', '128');
+      borderCircle.setAttribute('fill', 'none');
+      borderCircle.setAttribute('stroke', 'white');
+      borderCircle.setAttribute('stroke-width', '6');
+      borderSvg.appendChild(borderCircle);
+      clockEl.appendChild(borderSvg);
+    }
+
+    renderClockFace();
 
     const minuteHand = document.getElementById('minute');
     const secondHand = document.getElementById('second');
@@ -521,18 +840,13 @@
     const dragTooltip = document.getElementById('drag-time-tooltip');
 
     function degToTimeStr(deg) {
-      const totalMinutes = deg / 360 * 75;
-      const total = Math.floor(9 * 60 + totalMinutes);
+      const totalMinutes = deg / 360 * totalSessionMinutes;
+      const [startHour, startMinute] = config.startTime.split(':').map(Number);
+      const total = Math.floor(startHour * 60 + startMinute + totalMinutes);
       const h = Math.floor(total / 60);
       const m = total % 60;
       return `${h}h${String(m).padStart(2, '0')}`;
     }
-    const alertStages = [
-      { end: 15,  next: 'a confraternização', color: 'green',  audioKey: 'confraternizacao' },
-      { end: 20,  next: 'a lição',            color: 'yellow', audioKey: 'licao'            },
-      { end: 70,  next: 'o pastoreio',        color: 'orange', audioKey: 'pastoreio'        },
-      { end: 75,  next: 'o fim',              color: 'red',    audioKey: null               },
-    ];
 
     const audios = {
       hora: {
@@ -549,55 +863,54 @@
       },
     };
 
-    const stageAudioMap = {
-      confraternizacao: 'confraternizacao',
-      fechamento:       'fechamento',
-      pastoreio:        'pastoreio',
-    };
-
-    let umMinutoPlayed = { confraternizacao: false, licao: false, fechamento: false, pastoreio: false };
+    let umMinutoPlayed = createMinuteFlags();
 
     function playAudio(audio) {
+      if (!audio) return;
       audio.currentTime = 0;
       audio.play().catch(() => {});
     }
 
-    const licaoDias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
-    const licaoMinStart = 20;
-    const licaoMinEnd   = 60;
-    const licaoDuracao  = licaoMinEnd - licaoMinStart; // 40 min
-
-    const licaoDiasKeys = ['sabado', 'domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta'];
-
-    const stageInfo = {
-      abertura:         { label: 'Abertura',         color: '#e8e6f0', palette: ['#e8e6f0','#ffffff','#b0adc8','#ffffff'] },
-      confraternizacao: { label: 'Confraternização', color: '#e8e6f0', palette: ['#e8e6f0','#ffffff','#b0adc8','#ffffff'] },
-      'licao-sabado':   { label: 'Lição · Sábado',   color: '#e8e6f0', palette: ['#e8e6f0','#ffffff','#b0adc8','#ffffff'] },
-      'licao-domingo':  { label: 'Lição · Domingo',  color: '#e8e6f0', palette: ['#e8e6f0','#ffffff','#b0adc8','#ffffff'] },
-      'licao-segunda':  { label: 'Lição · Segunda',  color: '#e8e6f0', palette: ['#e8e6f0','#ffffff','#b0adc8','#ffffff'] },
-      'licao-terca':    { label: 'Lição · Terça',    color: '#e8e6f0', palette: ['#e8e6f0','#ffffff','#b0adc8','#ffffff'] },
-      'licao-quarta':   { label: 'Lição · Quarta',   color: '#e8e6f0', palette: ['#e8e6f0','#ffffff','#b0adc8','#ffffff'] },
-      'licao-quinta':   { label: 'Lição · Quinta',   color: '#e8e6f0', palette: ['#e8e6f0','#ffffff','#b0adc8','#ffffff'] },
-      'licao-sexta':    { label: 'Lição · Sexta',    color: '#e8e6f0', palette: ['#e8e6f0','#ffffff','#b0adc8','#ffffff'] },
-      pastoreio:        { label: 'Pastoreio',        color: '#e8e6f0', palette: ['#e8e6f0','#ffffff','#b0adc8','#ffffff'] },
-      fechamento:       { label: 'Fechamento',       color: '#e8e6f0', palette: ['#e8e6f0','#ffffff','#b0adc8','#ffffff'] },
-      fim:              { label: 'Fim',              color: '#dc143c', palette: ['#dc143c','#ff5673','#9b0e2a','#ffffff'] },
-    };
-
-    function currentStageKey(m) {
-      if (m < 15) return 'abertura';
-      if (m < 20) return 'confraternizacao';
-      if (m < 60) {
-        const idx = Math.min(6, Math.floor((m - 20) / (licaoDuracao / 7)));
-        return 'licao-' + licaoDiasKeys[idx];
-      }
-      if (m < 70) return 'fechamento';
-      if (m < 75) return 'pastoreio';
-      return 'fim';
+    function createMinuteFlags() {
+      return { confraternizacao: false, licao: false, fechamento: false, pastoreio: false };
     }
 
-    function fireStageAnimation(key) {
-      const info = stageInfo[key];
+    function stagePalette(color) {
+      return [color, '#ffffff', '#b0adc8', '#ffffff'];
+    }
+
+    function currentStage(m) {
+      if (m >= totalSessionMinutes) {
+        return {
+          key: 'fim',
+          label: 'Fim',
+          color: '#dc143c',
+          palette: ['#dc143c', '#ff5673', '#9b0e2a', '#ffffff'],
+        };
+      }
+
+      const stage = timeline.find(item => m < item.end) || timeline[timeline.length - 1];
+      if (stage.kind === 'lesson') {
+        const slice = stage.duration / 7;
+        const idx = Math.min(6, Math.floor((m - stage.start) / slice));
+        return {
+          ...stage,
+          key: `${stage.key}-${licaoDiasKeys[idx]}`,
+          label: `${stage.label} · ${dias[idx]}`,
+          color: '#e8e6f0',
+          palette: stagePalette(stage.color),
+          lessonDayIndex: idx,
+        };
+      }
+
+      return {
+        ...stage,
+        color: '#e8e6f0',
+        palette: stagePalette(stage.color),
+      };
+    }
+
+    function fireStageAnimation(info) {
       if (!info) return;
 
       const flash = document.createElement('div');
@@ -636,17 +949,148 @@
     }
 
     let lastStageKey = null;
+    let lastStageIndex = null;
 
     let sessionStarted = false;
     let startTime = Date.now();
     let dragging = false;
     let dragDeg = 0;
 
-    document.getElementById('start-overlay').addEventListener('click', () => {
+    document.getElementById('start-btn').addEventListener('click', () => {
       document.getElementById('start-overlay').classList.add('hidden');
       startTime = Date.now();
       lastStageKey = null;
+      lastStageIndex = null;
+      umMinutoPlayed = createMinuteFlags();
       sessionStarted = true;
+    });
+
+    const settingsScreen = document.getElementById('settings-screen');
+    const stageList = document.getElementById('stage-list');
+    const startTimeInput = document.getElementById('setting-start-time');
+    const settingsSummary = document.getElementById('settings-summary');
+
+    function formatDuration(minutes) {
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      if (!hours) return `${mins} min`;
+      if (!mins) return `${hours}h`;
+      return `${hours}h ${mins}min`;
+    }
+
+    function escapeAttr(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    function renderSettings() {
+      settingsDraft = normalizeConfig(settingsDraft);
+      startTimeInput.value = settingsDraft.startTime;
+      const total = settingsDraft.stages.reduce((sum, stage) => sum + Number(stage.duration), 0);
+      settingsSummary.textContent = `Duração total: ${formatDuration(total)} · ${settingsDraft.stages.length} etapas`;
+
+      stageList.innerHTML = settingsDraft.stages.map((stage, index) => `
+        <div class="stage-row" data-index="${index}">
+          <label class="settings-field">
+            Nome
+            <input data-field="label" type="text" value="${escapeAttr(stage.label)}" />
+          </label>
+          <label class="settings-field">
+            Minutos
+            <input data-field="duration" type="number" min="1" step="1" value="${stage.duration}" />
+          </label>
+          <label class="settings-field">
+            Cor
+            <input data-field="color" type="color" value="${stage.color}" />
+          </label>
+          <div class="stage-tools">
+            <button class="icon-btn" data-action="up" type="button" title="Subir" ${index === 0 ? 'disabled' : ''}>↑</button>
+            <button class="icon-btn" data-action="down" type="button" title="Descer" ${index === settingsDraft.stages.length - 1 ? 'disabled' : ''}>↓</button>
+            <button class="icon-btn" data-action="remove" type="button" title="Remover" ${settingsDraft.stages.length === 1 ? 'disabled' : ''}>×</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openSettings() {
+      settingsDraft = cloneConfig(config);
+      renderSettings();
+      settingsScreen.classList.add('visible');
+      settingsScreen.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeSettings() {
+      settingsScreen.classList.remove('visible');
+      settingsScreen.setAttribute('aria-hidden', 'true');
+    }
+
+    function swapStages(from, to) {
+      const next = settingsDraft.stages[to];
+      settingsDraft.stages[to] = settingsDraft.stages[from];
+      settingsDraft.stages[from] = next;
+    }
+
+    document.getElementById('settings-btn').addEventListener('click', openSettings);
+    document.getElementById('close-settings').addEventListener('click', closeSettings);
+
+    startTimeInput.addEventListener('input', () => {
+      settingsDraft.startTime = startTimeInput.value || defaultConfig.startTime;
+    });
+
+    function updateStageDraftFromField(e) {
+      const row = e.target.closest('.stage-row');
+      if (!row) return;
+      const stage = settingsDraft.stages[Number(row.dataset.index)];
+      const field = e.target.dataset.field;
+      if (!stage || !field) return;
+      stage[field] = field === 'duration' ? Math.max(1, Number(e.target.value) || 1) : e.target.value;
+      settingsDraft = normalizeConfig(settingsDraft);
+      settingsSummary.textContent = `Duração total: ${formatDuration(settingsDraft.stages.reduce((sum, item) => sum + Number(item.duration), 0))} · ${settingsDraft.stages.length} etapas`;
+    }
+
+    stageList.addEventListener('input', updateStageDraftFromField);
+    stageList.addEventListener('change', updateStageDraftFromField);
+
+    stageList.addEventListener('click', e => {
+      const button = e.target.closest('button[data-action]');
+      const row = e.target.closest('.stage-row');
+      if (!button || !row) return;
+
+      const index = Number(row.dataset.index);
+      if (button.dataset.action === 'up' && index > 0) {
+        swapStages(index, index - 1);
+      }
+      if (button.dataset.action === 'down' && index < settingsDraft.stages.length - 1) {
+        swapStages(index, index + 1);
+      }
+      if (button.dataset.action === 'remove' && settingsDraft.stages.length > 1) {
+        settingsDraft.stages.splice(index, 1);
+      }
+      renderSettings();
+    });
+
+    document.getElementById('add-stage').addEventListener('click', () => {
+      settingsDraft.stages.push({
+        label: `Etapa ${settingsDraft.stages.length + 1}`,
+        duration: 5,
+        color: defaultConfig.stages[settingsDraft.stages.length % defaultConfig.stages.length].color,
+        kind: 'normal',
+        audioKey: null,
+      });
+      renderSettings();
+    });
+
+    document.getElementById('reset-settings').addEventListener('click', () => {
+      settingsDraft = cloneConfig(defaultConfig);
+      renderSettings();
+    });
+
+    document.getElementById('save-settings').addEventListener('click', () => {
+      saveConfig(settingsDraft);
+      closeSettings();
     });
 
     function clockCenter() {
@@ -663,7 +1107,7 @@
     function update() {
       if (!sessionStarted) return;
       const elapsed = (Date.now() - startTime) / 1000;
-      const minuteDeg = dragging ? dragDeg : (elapsed / 75) * 6;
+      const minuteDeg = dragging ? dragDeg : (elapsed / (totalSessionMinutes * 60)) * 360;
 
       secondHand.style.transform = `rotate(${(elapsed % 60) * 6}deg)`;
       minuteHand.style.transform = `rotate(${minuteDeg}deg)`;
@@ -675,74 +1119,68 @@
         shadowPath.setAttribute('d', '');
       }
 
-      const minutesElapsed = dragging ? (dragDeg / 6 * 75 / 60) : (elapsed / 60);
+      const minutesElapsed = dragging ? (dragDeg / 360 * totalSessionMinutes) : (elapsed / 60);
 
-      const stageKey = currentStageKey(minutesElapsed);
+      const stage = currentStage(minutesElapsed);
+      const stageKey = stage.key;
       if (lastStageKey === null) {
         lastStageKey = stageKey;
+        lastStageIndex = stage.index;
       } else if (stageKey !== lastStageKey) {
         if (!dragging) {
-          fireStageAnimation(stageKey);
-          const audioKey = stageAudioMap[stageKey] ??
-            (stageKey.startsWith('licao-') && !lastStageKey.startsWith('licao-') ? 'licao' : null);
+          fireStageAnimation(stage);
+          const audioKey = stage.index !== lastStageIndex ? timeline[lastStageIndex]?.audioKey : null;
           if (audioKey) playAudio(audios.hora[audioKey]);
           if (stageKey === 'fim') {
             setTimeout(() => {
               sessionStarted = false;
               lastStageKey = null;
-              umMinutoPlayed = { confraternizacao: false, licao: false, fechamento: false, pastoreio: false };
+              lastStageIndex = null;
+              umMinutoPlayed = createMinuteFlags();
               alertMsg.className = 'alert-msg';
               document.getElementById('start-overlay').classList.remove('hidden');
             }, 4500);
           }
         }
         lastStageKey = stageKey;
+        lastStageIndex = stage.index;
       }
 
-      let remaining, color;
+      if (stage.key === 'fim') {
+        alertMsg.className = 'alert-msg';
+        return;
+      }
 
-      if (minutesElapsed >= licaoMinStart && minutesElapsed < licaoMinEnd) {
-        const pos = (minutesElapsed - licaoMinStart) / licaoDuracao * 7;
-        const diaIdx = Math.floor(pos);
-        if (diaIdx < 6) {
-          const nextDia = licaoDias[diaIdx];
-          const endDia = licaoMinStart + (diaIdx + 1) * (licaoDuracao / 7);
-          remaining = Math.ceil(endDia - minutesElapsed);
-          const label = remaining === 1 ? 'minuto' : 'minutos';
-          alertMsg.textContent = `faltam ${remaining} ${label} para a parte de ${nextDia}`;
-        } else {
-          remaining = Math.ceil(licaoMinEnd - minutesElapsed);
-          const label = remaining === 1 ? 'minuto' : 'minutos';
-          alertMsg.textContent = `faltam ${remaining} ${label} para o fechamento`;
-        }
-        color = 'blue';
+      if (stage.kind === 'lesson') {
+        const slice = stage.duration / 7;
+        const dayEnd = stage.start + (stage.lessonDayIndex + 1) * slice;
+        const remaining = Math.ceil(dayEnd - minutesElapsed);
+        const label = remaining === 1 ? 'minuto' : 'minutos';
+        const isLastDay = stage.lessonDayIndex === 6;
+        alertMsg.textContent = isLastDay
+          ? `faltam ${remaining} ${label} para ${nextStageName(stage.index)}`
+          : `faltam ${remaining} ${label} para a parte de ${licaoDias[stage.lessonDayIndex]}`;
         alertMsg.className = `alert-msg blue visible${remaining <= 1 ? ' urgente' : ''}`;
 
-        // um minuto antes do fechamento (ocorre dentro do bloco lição, minuto ~59)
-        const minFechamento = licaoMinEnd - minutesElapsed;
-        if (minFechamento <= 1 && minFechamento > 0 && !umMinutoPlayed.fechamento) {
-          umMinutoPlayed.fechamento = true;
-          if (!dragging) playAudio(audios.umMinuto.fechamento);
+        const minutesToLessonEnd = stage.end - minutesElapsed;
+        if (stage.audioKey && minutesToLessonEnd <= 1 && minutesToLessonEnd > 0 && !umMinutoPlayed[stage.audioKey]) {
+          umMinutoPlayed[stage.audioKey] = true;
+          if (!dragging) playAudio(audios.umMinuto[stage.audioKey]);
         }
-        if (minFechamento > 1) umMinutoPlayed.fechamento = false;
+        if (stage.audioKey && minutesToLessonEnd > 1) umMinutoPlayed[stage.audioKey] = false;
       } else {
-        const stage = alertStages.find(s => minutesElapsed < s.end);
-        if (stage) {
-          remaining = Math.ceil(stage.end - minutesElapsed);
-          const minutesRemaining = stage.end - minutesElapsed;
-          const label = remaining === 1 ? 'minuto' : 'minutos';
-          alertMsg.textContent = `faltam ${remaining} ${label} para ${stage.next}`;
-          alertMsg.className = `alert-msg ${stage.color} visible${remaining <= 1 ? ' urgente' : ''}`;
+        const remaining = Math.ceil(stage.end - minutesElapsed);
+        const minutesRemaining = stage.end - minutesElapsed;
+        const label = remaining === 1 ? 'minuto' : 'minutos';
+        alertMsg.textContent = `faltam ${remaining} ${label} para ${nextStageName(stage.index)}`;
+        alertMsg.className = `alert-msg visible${remaining <= 1 ? ' urgente' : ''}`;
 
-          if (stage.audioKey) {
-            if (minutesRemaining <= 1 && minutesRemaining > 0 && !umMinutoPlayed[stage.audioKey]) {
-              umMinutoPlayed[stage.audioKey] = true;
-              if (!dragging) playAudio(audios.umMinuto[stage.audioKey]);
-            }
-            if (minutesRemaining > 1) umMinutoPlayed[stage.audioKey] = false;
+        if (stage.audioKey) {
+          if (minutesRemaining <= 1 && minutesRemaining > 0 && !umMinutoPlayed[stage.audioKey]) {
+            umMinutoPlayed[stage.audioKey] = true;
+            if (!dragging) playAudio(audios.umMinuto[stage.audioKey]);
           }
-        } else {
-          alertMsg.className = 'alert-msg';
+          if (minutesRemaining > 1) umMinutoPlayed[stage.audioKey] = false;
         }
       }
     }
@@ -779,7 +1217,7 @@
 
     window.addEventListener('mouseup', () => {
       if (!dragging) return;
-      startTime = Date.now() - (dragDeg / 6 * 75) * 1000;
+      startTime = Date.now() - (dragDeg / 360 * totalSessionMinutes * 60) * 1000;
       dragging = false;
       minuteHand.classList.remove('dragging');
       dragTooltip.classList.remove('visible');
@@ -788,7 +1226,7 @@
     window.addEventListener('touchend', e => {
       if (!dragging) return;
       dragDeg = pointerAngle(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
-      startTime = Date.now() - (dragDeg / 6 * 75) * 1000;
+      startTime = Date.now() - (dragDeg / 360 * totalSessionMinutes * 60) * 1000;
       dragging = false;
       minuteHand.classList.remove('dragging');
       dragTooltip.classList.remove('visible');
